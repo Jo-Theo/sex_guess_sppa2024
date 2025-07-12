@@ -123,13 +123,3 @@ bouted_behav %>%
   write.csv2("Jo_dev/Data/bouted_behaviours_SPPA2024_1.csv", row.names = F)
 
 
-
-################### 
-### Import data ###
-###################
-
-behaviours <- read.csv2("Jo_dev/Data/bouted_behaviours.csv")
-
-########################
-### Data exploration ###
-########################
