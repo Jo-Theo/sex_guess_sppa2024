@@ -27,6 +27,10 @@ behaviours %>%
   split(.$Session) %>% 
   map_dfr(~data.frame(
     Session = .x$Session[1],
+    Nb_na = .x %>% 
+      pull(F_in) %>% 
+      is.na() %>% 
+      sum(),
     Prop_na = .x %>% 
       pull(F_in) %>% 
       is.na() %>% 
@@ -34,6 +38,28 @@ behaviours %>%
       round(3)
   ))
 
+
+behaviours %>% 
+  filter(Session ==  unique(Session)[4]) %>% 
+  pull(F_in)
+
+two_next_diff_value <- function(vec,pos){
+  pos1 <- pos+1
+  while (vec[pos] == vec[pos1]) {
+    if(pos1 > length(vec)){
+      return(c(NA,NA))
+    }
+    pos1 <- pos1+1
+  }
+  pos2 <- pos1 + 1
+  while (vec[pos1] == vec[pos2]) {
+    if(pos2 > length(vec)){
+      return(c(pos1,NA))
+    }
+    pos2 <- pos2+1
+  }
+  return(c(pos1,pos2))
+}
 
 
 for (i in 1:dim(test)[1]){
