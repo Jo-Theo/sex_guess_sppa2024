@@ -18,4 +18,4 @@ behaviours <- read.csv2("Jo_dev/Data/bouted_behaviours_SPPA2024_1.csv")
 ### Data exploration ###
 ########################
 
-mini_session_by_session(behaviours, length_min = 1)
+mini_behaviours <- sub_session_by_session(behaviours, length_min = 2)
