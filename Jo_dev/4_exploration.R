@@ -36,6 +36,9 @@ sub_session_behaviours$Sub_session %>%
 individual_bout <- extract_individual_bout(sub_session_behaviours)
 
 individual_bout %>% 
+  filter(BreedingStage == "Digging, Building")
+
+individual_bout %>% 
   ggplot(aes(x = Bout_length, fill = BreedingStage)) +
   geom_density(alpha = 0.5) +  # Adjust transparency with alpha
   labs(title = "Density Plot by Pair",
@@ -69,7 +72,21 @@ individual_bout %>%
        y = "Density") +
   theme_minimal()
 
+# glm(data = individual_bout, formula = Bout_length ~ 1, family = poisson)
 
 
+library(randomForest)
 
+individual_bout %>% 
+  mutate(Nb_bird = as.factor(Nb_bird))
 
+set.seed(222)
+ind <- sample(2, nrow(individual_bout), replace = TRUE, prob = c(0.7, 0.3))
+train <- individual_bout[ind==1,]
+test <- individual_bout[ind==2,]
+
+rf <- randomForest(Bird_in ~ TimeAction + BreedingStage + Pair + Nest + Date + Bout_length + Sex + Id_bird, data=train, proximity=TRUE) 
+print(rf)
+
+p1 <- predict(rf, train)
+confusionMatrix(p1, train$ Species)
