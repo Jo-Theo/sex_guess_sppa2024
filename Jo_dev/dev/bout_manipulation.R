@@ -57,3 +57,16 @@ sub_session_by_session <- function(behaviours, length_min = 1){
     arrange(Session) %>% 
     relocate(Sub_session, .after = Session )
 }
+
+
+
+.indiv_bout_nb <- function(splited_bout, na_last_first = FALSE){
+  bout_nb <- c(T,splited_bout[-1] != splited_bout[-length(splited_bout)]) %>% 
+    as.numeric() %>% 
+    cumsum()
+  if(na_last_first){
+      bout_nb[which(bout_nb == 1 | bout_nb == max(bout_nb))] <- NA
+  }
+  return(bout_nb)
+}
+

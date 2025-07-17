@@ -32,22 +32,24 @@ sub_session_behaviours$Sub_session %>%
   summary() %>% 
   sort()
 
-sex_male <- T
+
 i <- 1
-splited_bout <- sub_session_behaviours %>% 
-  filter(Sub_session == unique(Sub_session)[i]) %>% 
-  pull(if(sex_male){"M_in"}else{"F_in"})
+
+get_bout_ind <- function(behaviours, na_last_first = FALSE){
+  behaviours %>% 
+    mutate(male_bout =  .indiv_bout_nb(behaviours$M_in, na_last_first),
+           female_bout = .indiv_bout_nb(behaviours$F_in, na_last_first))
+} 
 
 
-.indiv_bout_nb <- function(splited_bout){
-  c(T,splited_bout[-1] != splited_bout[-length(splited_bout)]) %>% 
-    as.numeric() %>% 
-    cumsum()
-}
+behaviours <- sub_session_behaviours %>% 
+  filter(Sub_session == unique(Sub_session)[i])
 
-data.frame(splited_bout,ind_bout = .indiv_bout_nb(splited_bout))
+get_bout_ind(behaviours,T)
 
-c(T,splited_bout[-1] != splited_bout[-length(splited_bout)]) %>% 
-  as.numeric() %>% 
-  cumsum()
+
+
+
+
+
 
