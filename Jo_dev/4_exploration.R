@@ -72,21 +72,63 @@ individual_bout %>%
        y = "Density") +
   theme_minimal()
 
-# glm(data = individual_bout, formula = Bout_length ~ 1, family = poisson)
+individual_bout <- individual_bout %>% 
+  mutate(Bird_in = as.factor(Bird_in),
+         TimeAction = as_hms(TimeAction),
+         BreedingStage = as.factor(BreedingStage),
+         Pair = as.factor(Pair),
+         Nest = as.factor(Nest),
+         Date = as.Date(Date),
+         Year = as.factor(Year),
+         Sex = as.factor(Sex),
+         Id_bird = as.factor(Id_bird))
+individual_bout %>% 
+  map()
+
+glm(data = individual_bout, formula = Bird_in ~ I(Bout_length**2) + Bout_length + Nb_bird + TimeAction + BreedingStage + Pair + Nest + Date + Sex + Id_bird, family = )
 
 
 library(randomForest)
+library(tidymodels)
 
-individual_bout %>% 
-  mutate(Nb_bird = as.factor(Nb_bird))
+# Split data into train and test
+set.seed(421)
+split <- initial_split(individual_bout, prop = 0.8, strata = Bird_in)
+train <- split %>% 
+  training()
+test <- split %>% 
+  testing()
 
-set.seed(222)
-ind <- sample(2, nrow(individual_bout), replace = TRUE, prob = c(0.7, 0.3))
-train <- individual_bout[ind==1,]
-test <- individual_bout[ind==2,]
+model <- logistic_reg(mixture = double(1), penalty = double(1)) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification") %>%
+  fit(Bird_in ~ I(Bout_length**2) + Bout_length + Nb_bird + TimeAction + BreedingStage + Pair + Nest + Date + Sex + Id_bird, data = train)
 
-rf <- randomForest(Bird_in ~ TimeAction + BreedingStage + Pair + Nest + Date + Bout_length + Sex + Id_bird, data=train, proximity=TRUE) 
-print(rf)
+tidy(model)
 
-p1 <- predict(rf, train)
-confusionMatrix(p1, train$ Species)
+
+
+pred_proba <- predict(model,
+                      new_data = test,
+                      type = "prob")
+pred_class <- predict(model,
+                      new_data = test,
+                      type = "class")
+results <- test %>%
+  select(Bird_in) %>%
+  bind_cols(pred_class, pred_proba)
+
+accuracy(results, truth = Bird_in, estimate = .pred_class)
+
+
+
+
+# ind <- sample(2, nrow(individual_bout), replace = TRUE, prob = c(0.7, 0.3))
+# train <- individual_bout[ind==1,]
+# test <- individual_bout[ind==2,]
+# 
+# rf <- randomForest(Bout_length ~ Bird_in + TimeAction + BreedingStage + Pair + Nest + Date + Sex + Id_bird, data=train, proximity=TRUE) 
+# print(rf)
+# 
+# p1 <- predict(rf, train)
+# confusionMatrix(p1, train$ Species)
