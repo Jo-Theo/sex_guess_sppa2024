@@ -33,84 +33,41 @@ sub_session_behaviours$Sub_session %>%
   sort()
 
 
-i <- 1
+individual_bout <- extract_individual_bout(sub_session_behaviours)
 
-.get_bout_ind <- function(behaviours, na_last_first = FALSE){
-  behaviours %>% 
-    mutate(male_bout =  .indiv_bout_nb(behaviours$M_in, na_last_first),
-           female_bout = .indiv_bout_nb(behaviours$F_in, na_last_first))
-} 
-
-.contract_bout <- function(behaviours,male_bird = T){
-  if(male_bird){
-    split_by <- behaviours$male_bout
-    to_erase <- c("F_in","U_in","male_bout", "female_bout")
-    rename_this <- "M_in"
-    sex <- "M"
-  }else{
-    split_by <- behaviours$female_bout
-    to_erase <- c("M_in","U_in","male_bout", "female_bout")
-    rename_this <- "F_in"
-    sex <- "F"
-  }
-  behaviours %>% 
-    split(split_by) %>% 
-    map_dfr(function(bout){
-      res_bout <- bout[1,]
-      res_bout[to_erase] <- NULL
-      res_bout$Sex <- sex
-      res_bout$Nb_bird <- mean(bout$Nb_bird)
-      res_bout$Bout_length<- mean(bout$Bout_length)
-      res_bout %>% 
-        rename_at(rename_this,~'Bird_in')
-    })
-  
-}
+individual_bout %>% 
+  ggplot(aes(x = Bout_length, fill = BreedingStage)) +
+  geom_density(alpha = 0.5) +  # Adjust transparency with alpha
+  labs(title = "Density Plot by Pair",
+       x = "Bout length",
+       y = "Density") +
+  theme_minimal()
 
 
-behaviours <- sub_session_behaviours %>% 
-  filter(Sub_session == unique(Sub_session)[i])
-bout_ind_behaviours <- .get_bout_ind(behaviours,T)
+individual_bout %>% 
+ggplot(aes(x = Bout_length, fill = Sex)) +
+  geom_density(alpha = 0.5) +  # Adjust transparency with alpha
+  labs(title = "Density Plot by sex",
+       x = "Bout length",
+       y = "Density") +
+  theme_minimal()
 
-.contract_bout <- function(behaviours,male_bird = T){
-  if(male_bird){
-    split_by <- behaviours$male_bout
-    to_erase <- c("F_in","U_in","male_bout", "female_bout")
-    rename_this <- "M_in"
-    sex <- "M"
-  }else{
-    split_by <- behaviours$female_bout
-    to_erase <- c("M_in","U_in","male_bout", "female_bout")
-    rename_this <- "F_in"
-    sex <- "F"
-  }
-  behaviours %>% 
-    split(split_by) %>% 
-    map_dfr(function(bout){
-      res_bout <- bout[1,]
-      res_bout[to_erase] <- NULL
-      res_bout$Sex <- sex
-      res_bout$Nb_bird <- mean(bout$Nb_bird)
-      res_bout$Bout_length<- mean(bout$Bout_length)
-      res_bout %>% 
-        rename_at(rename_this,~'Bird_in')
-    })
-  
-}
-  
-.contract_bout(bout_ind_behaviours,F)
+individual_bout %>% 
+  mutate(Pair = as.factor(Pair)) %>% 
+  ggplot(aes(x = Bout_length, fill = Pair)) +
+  geom_density(alpha = 0.5) +  # Adjust transparency with alpha
+  labs(title = "Density Plot by Pair",
+       x = "Bout length",
+       y = "Density") +
+  theme_minimal()
 
-bout_ind_behaviours %>% 
-  split(.$male_bout) %>% 
-  map_dfr(function(bout){
-    res_bout <- bout[1,]
-    res_bout[c("F_in","U_in","male_bout", "female_bout")] <- NULL
-    res_bout$Sex <- "M"
-    res_bout$Nb_bird <- mean(bout$Nb_bird)
-    res_bout$Bout_length<- mean(bout$Bout_length)
-    res_bout %>% 
-      rename(Bird_in = M_in)
-  })
+individual_bout %>% 
+  ggplot(aes(x = Bout_length, fill = Id_bird)) +
+  geom_density(alpha = 0.5) +  # Adjust transparency with alpha
+  labs(title = "Density Plot by Pair",
+       x = "Bout length",
+       y = "Density") +
+  theme_minimal()
 
 
 
