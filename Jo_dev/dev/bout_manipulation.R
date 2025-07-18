@@ -11,6 +11,7 @@ library(lubridate)
 library(hms)
 library(purrr)
 library(ggplot2)
+library(tidymodels)
 
 ##############################
 ### Sub_sessions functions ###
@@ -98,8 +99,8 @@ sub_session_by_session <- function(behaviours, length_min = 1){
       res_bout <- bout[1,]
       res_bout[to_erase] <- NULL
       res_bout$Sex <- sex
-      res_bout$Nb_bird <- mean(bout$Nb_bird)
-      res_bout$Bout_length<- sum(bout$Bout_length)
+      res_bout$Bout_length <- sum(bout$Bout_length)
+      res_bout$Nb_bird <- sum(bout$Nb_bird*bout$Bout_length)/res_bout$Bout_length
       res_bout %>% 
         rename_at(rename_this,~'Bird_in')
     })

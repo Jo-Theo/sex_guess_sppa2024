@@ -19,7 +19,8 @@ behaviours <- read.csv2("Jo_dev/Data/bouted_behaviours_SPPA2024_1.csv")
 ########################
 
 # defining sub_session
-sub_session_behaviours <- sub_session_by_session(behaviours, length_min = 1)
+sub_session_behaviours <- sub_session_by_session(behaviours, length_min = 1) %>% 
+  mutate(Bout_length = ifelse(Bout_length == 0,1 ,Bout_length))
 
 ### So we have all sub session but we want to get rid of first and last states of each session (for male in/out and female in/out). 
 # We do this because we are not sure that the stating state actually started at the beginning of the sub_session 
@@ -73,8 +74,7 @@ individual_bout %>%
   theme_minimal()
 
 individual_bout <- individual_bout %>% 
-  mutate(Bird_in = as.factor(Bird_in),
-         TimeAction = as_hms(TimeAction),
+  mutate(TimeAction = as_hms(TimeAction),
          BreedingStage = as.factor(BreedingStage),
          Pair = as.factor(Pair),
          Nest = as.factor(Nest),
@@ -82,38 +82,35 @@ individual_bout <- individual_bout %>%
          Year = as.factor(Year),
          Sex = as.factor(Sex),
          Id_bird = as.factor(Id_bird))
-individual_bout %>% 
-  map()
-
-glm(data = individual_bout, formula = Bird_in ~ I(Bout_length**2) + Bout_length + Nb_bird + TimeAction + BreedingStage + Pair + Nest + Date + Sex + Id_bird, family = )
 
 
-library(randomForest)
-library(tidymodels)
+# library(randomForest)
 
+library(glmnet)
 # Split data into train and test
 set.seed(421)
-split <- initial_split(individual_bout, prop = 0.8, strata = Bird_in)
+split <- individual_bout[,c("Bout_length","Bird_in","Nb_bird", "TimeAction", "BreedingStage","Pair","Nest","Date","Sex","Id_bird")] %>% 
+  initial_split( prop = 0.8, strata = "Id_bird")
 train <- split %>% 
   training()
 test <- split %>% 
   testing()
 
-model <- logistic_reg(mixture = double(1), penalty = double(1)) %>%
-  set_engine("glmnet") %>%
-  set_mode("classification") %>%
-  fit(Bird_in ~ I(Bout_length**2) + Bout_length + Nb_bird + TimeAction + BreedingStage + Pair + Nest + Date + Sex + Id_bird, data = train)
+
+model <- glmnet(train[,-1], train$Bout_length, alpha = 0.2,family =  "poisson")
+
+
 
 tidy(model)
 
-
-
-pred_proba <- predict(model,
-                      new_data = test,
-                      type = "prob")
-pred_class <- predict(model,
-                      new_data = test,
-                      type = "class")
+plot(model)
+# 
+# pred_proba <- predict(model,
+#                       newx = test[,-1],
+#                       type = "response")
+# pred_class <- predict(model,
+#                       new_data = test,
+#                       type = "link")
 results <- test %>%
   select(Bird_in) %>%
   bind_cols(pred_class, pred_proba)
