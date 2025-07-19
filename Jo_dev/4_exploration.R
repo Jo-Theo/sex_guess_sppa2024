@@ -91,32 +91,43 @@ library(glmnet)
 set.seed(421)
 split <- individual_bout[,c("Bout_length","Bird_in","Nb_bird", "TimeAction", "BreedingStage","Pair","Nest","Date","Sex","Id_bird")] %>% 
   initial_split( prop = 0.8, strata = "Id_bird")
+
+
+
 train <- split %>% 
   training()
 test <- split %>% 
   testing()
 
-
-model <- glmnet(train[,-1], train$Bout_length, alpha = 0.2,family =  "poisson")
-
+x_matrices <- makeX(train = train[,-1],test = test[,-1])
 
 
-tidy(model)
+# model <- glmnet(x_matrices$x, train$Bout_length, alpha = 0.2,family =  "poisson")
 
-plot(model)
+
+cvfit <- cv.glmnet(x_matrices$x, train$Bout_length, alpha = 0.2, family = "poisson")
+
+
+
+tidy(cvfit)
+
+plot(cvfit)
+
+
+mirror <- x_matrices$xtest 
+mirror[,c('SexM','SexF')] <- mirror[,c('SexF','SexM')]
+
+
 # 
-# pred_proba <- predict(model,
-#                       newx = test[,-1],
-#                       type = "response")
-# pred_class <- predict(model,
-#                       new_data = test,
-#                       type = "link")
-results <- test %>%
-  select(Bird_in) %>%
-  bind_cols(pred_class, pred_proba)
+pred_means <- predict(cvfit,
+                      newx = x_matrices$xtest,
+                      type = "response")
+pred_means_mirror <- predict(cvfit,
+                      newx = mirror,
+                      type = "response")
 
-accuracy(results, truth = Bird_in, estimate = .pred_class)
-
+probabilities <- data.frame(True = ppois(test$Bout_length, pred_means, lower.tail = FALSE),
+                            False = ppois(test$Bout_length, pred_means_mirror, lower.tail = FALSE))
 
 
 
