@@ -7,6 +7,7 @@ rm(list = ls(all.names = T))
 ##############################
 
 source("jo_dev/dev/preprossesing_functions.R")
+source("jo_dev/dev/bout_manipulation.R")
 
 ################### 
 ### Import data ###
@@ -121,5 +122,27 @@ any(bouted_behav$Bout_length<0)
 
 bouted_behav %>% 
   write.csv2("Jo_dev/Data/bouted_behaviours_SPPA2024_1.csv", row.names = F)
+
+
+################################### 
+### Creation of individual bout ###
+###################################
+
+
+bouted_behav <- read.csv2("Jo_dev/Data/bouted_behaviours_SPPA2024_1.csv")
+
+# defining sub_session
+sub_session_behaviours <- sub_session_by_session(bouted_behav, length_min = 1) %>% 
+  mutate(Bout_length = ifelse(Bout_length == 0,1 ,Bout_length)) # Just to try for gamma
+
+sub_session_behaviours %>% 
+  write.csv2("Jo_dev/Data/sub_session_behaviours_SPPA2024_1.csv", row.names = F)
+
+## Extraction of individual bouts 
+individual_bout <- extract_individual_bout(sub_session_behaviours)
+
+individual_bout %>% 
+  write.csv2("Jo_dev/Data/individual_bouts_SPPA2024_1.csv", row.names = F)
+
 
 

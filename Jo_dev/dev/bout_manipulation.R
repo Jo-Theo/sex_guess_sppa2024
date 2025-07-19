@@ -64,6 +64,10 @@ sub_session_by_session <- function(behaviours, length_min = 1){
 ### Individual bouting ###
 ##########################
 
+### So we have all sub session but we want to get rid of first and last states of each session (for male in/out and female in/out). 
+# We do this because we are not sure that the stating state actually started at the beginning of the sub_session 
+# So the bout length information isn't underestimated we will erode all sub_session from their first and last stages
+
 # Takes a bird activity (in a sub_session) column and givses at each lines a
 # personnal bout number everytime  (no more pair behaviour but split female and male ) 
 .indiv_bout_nb <- function(splited_bout, na_last_first = FALSE){
